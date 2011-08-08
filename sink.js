@@ -14,7 +14,7 @@
 			if (sinks.hasOwnProperty(dev) && sinks[dev].enabled){
 				try{
 					return new sinks[dev](readFn, channelCount, preBufferSize, sampleRate);
-				} catch(e1){console.error(e1);}
+				} catch(e1){}
 			}
 		}
 
@@ -107,19 +107,18 @@
 				l		= buffer.length,
 				buf,
 				bufLength,
-				i, n;
+				i, n, offset;
 			if (buffers){
 				for (i=0; i<buffers.length; i++){
 					buf		= buffers[i];
-					bufLength	= buf.length;
-					for (n=0; n < l && n < bufLength; n++){
-						if (buf.d){
-							buf.d--;
-						} else {
-							buffer[n] += buf.b[n];
-						}
+					bufLength	= buf.b.length;
+					offset		= buf.d;
+					buf.d		-= Math.min(offset, l);
+					
+					for (n=0; n + offset < l && n < bufLength; n++){
+						buffer[n + offset] += buf.b[n];
 					}
-					buf.b = buf.b.subarray(n);
+					buf.b = buf.b.subarray(n + offset);
 					i >= bufLength && buffers.splice(i--, 1);
 				}
 			}
@@ -146,7 +145,7 @@
 			var	buffers		= this.asyncBuffers;
 			buffers.push({
 				b: buffer,
-				d: isNaN(delay) ? (+new Date - this.previousHit) / 1000 * this.sampleRate : delay
+				d: isNaN(delay) ? ~~((+new Date - this.previousHit) / 1000 * this.sampleRate) : delay
 			});
 			return buffers.length;
 		},
@@ -203,6 +202,7 @@
 			timer; // Fix for https://bugzilla.mozilla.org/show_bug.cgi?id=630117
 		self.start.apply(self, arguments);
 		// TODO: All sampleRate & preBufferSize combinations don't work quite like expected, fix this.
+		self.preBufferSize = isNaN(arguments[2]) ? self.sampleRate / 2 : self.preBufferSize;
 
 		function bufferFill(){
 			if (tail){
@@ -216,7 +216,7 @@
 			}
 
 			currentPosition = audioDevice.mozCurrentSampleOffset();
-			available = Number(self.currentPosition + self.preBufferSize * self.channelCount - currentWritePosition);
+			available = Number(currentPosition + self.preBufferSize * self.channelCount - currentWritePosition);
 			if (available > 0){
 				soundData = new Float32Array(available);
 				self.process(soundData, self.channelCount);
@@ -266,7 +266,6 @@
 		node.connect(context.destination);
 
 		self.sampleRate		= context.sampleRate;
-		self.channelCount	= channelCount;
 		/* Keep references in order to avoid garbage collection removing the listeners, working around http://code.google.com/p/chromium/issues/detail?id=82795 */
 		self._context		= context;
 		self._node		= node;
@@ -294,10 +293,11 @@
 	Sink.Recording		= Recording;
 
 	Sink.doInterval		= function(callback, timeout){
-		var timer, id, prev;
+		var	BlobBuilder	= window.MozBlobBuilder || window.WebKitBlobBuilder || window.MSBlobBuilder || window.OBlobBuilder || window.BlobBuilder,
+			timer, id, prev;
 		if (Sink.doInterval.backgroundWork || Sink.devices.moz.backgroundWork){
-			if (window.MozBlobBuilder){
-				prev	= new MozBlobBuilder();
+			if (BlobBuilder){
+				prev	= new BlobBuilder();
 				prev.append('setInterval(function(){ postMessage("tic"); }, ' + timeout + ');');
 				id	= window.URL.createObjectURL(prev.getBlob());
 				timer	= new Worker(id);
