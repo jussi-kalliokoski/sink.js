@@ -119,7 +119,7 @@
 							buffer[n] += buf.b[n];
 						}
 					}
-					buffers[i] = buf.subarray(n);
+					buf.b = buf.b.subarray(n);
 					i >= bufLength && buffers.splice(i--, 1);
 				}
 			}
@@ -174,7 +174,7 @@
 				n	= this.ringOffset,
 				i;
 			for (i=0; i<l; i++){
-				buffer[i] = ring[n];
+				buffer[i] += ring[n];
 				n = (n + 1) % m;
 			}
 			this.ringOffset = n;
