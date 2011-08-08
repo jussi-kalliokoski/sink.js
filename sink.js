@@ -72,6 +72,8 @@
 		preBufferSize: 4096,
 		writeMode: 'async',
 		previousHit: 0,
+		ringBuffer: null,
+		ringOffset: 0,
 		start: function(readFn, channelCount, preBufferSize, sampleRate){
 			this.channelCount	= isNaN(channelCount) ? this.channelCount: channelCount;
 			this.preBufferSize	= isNaN(preBufferSize) ? this.preBufferSize : preBufferSize;
@@ -83,6 +85,7 @@
 			this.syncBuffers	= [];
 		},
 		process: function(){
+			this.ringBuffer && this.ringSpin.apply(this, arguments);
 			this.writeBuffersSync.apply(this, arguments);
 			this.readFn && this.readFn.apply(this, arguments);
 			this.writeBuffersAsync.apply(this, arguments);
@@ -163,6 +166,18 @@
 				offset += buffers[i].length;
 			}
 			return offset;
+		},
+		ringSpin: function(buffer){
+			var	ring	= this.ringBuffer,
+				l	= buffer.length,
+				m	= ring.length,
+				n	= this.ringOffset,
+				i;
+			for (i=0; i<l; i++){
+				buffer[i] = ring[n];
+				n = (n + 1) % m;
+			}
+			this.ringOffset = n;
 		}
 	};
 
