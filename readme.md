@@ -31,7 +31,7 @@ var sink = Sink(function(buffer, channelCount){
 
 To write, you can use the ``` .write(buffer, [delay=undefined]) ``` method. The default writing mode is "async" where the specified buffer will be mixed with existing data. If a delay is not specified, the system will automatically create a delay to try to compensate the latency. The delay is specified as number of samples.
 
-Another mode of writing is "sync". You can set this by changing your sink's ``` .writeMode ``` property to "sync". In the "sync" write mode, the delay is disregarded and instead all written buffers will be appended right after the previous one has been exhausted. To get the current sample offset in the "sync" write mode, you can use the ``` .getCurrentSampleOffset() ``` method.
+Another mode of writing is "sync". You can set this by changing your sink's ``` .writeMode ``` property to "sync". In the "sync" write mode, the delay is disregarded and instead all written buffers will be appended right after the previous one has been exhausted. To get the current sample offset in the "sync" write mode, you can use the ``` .getSyncWriteOffset() ``` method.
 
 Beware of writing zero-length buffers, as they will induce NaNs to your buffers. This can be a bad thing especially if written in the "sync" mode and combined with some effects processing in a callback.
 
