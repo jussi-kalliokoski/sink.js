@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="../sink.js"></script>
+		<script>
+function SineWave(sampleRate, frequency){
+	var	phase	= 0,
+		pi2	= Math.PI * 2,
+		coEff	= frequency / sampleRate * .5;
+	return function(){
+		phase = (phase + coEff) % 1;
+		return Math.sin(phase * pi2);
+	};
+}
+
+(function(){
+
+var	dev, oscs;
+x = 0;
+
+function fillCall(buffers, channelCount){
+	var i, n;
+	for (i=0; i<channelCount; i++){
+		for (n=0; n<buffers[i].length; n++){
+			buffers[i][n] = oscs[i]() * 0.3;
+		}
+	}
+}
+
+window.onload	= function(){
+	dev	= Sink(fillCall);
+	dev.channelMode = 'deinterleaved';
+	oscs	= [SineWave(dev.sampleRate, 440), SineWave(dev.sampleRate, 660)];
+};
+
+window.sync	= function(){
+	dev.writeBufferSync(noise);
+};
+
+window.async	= function(){
+	dev.writeBufferAsync(noise, +document.getElementById('d').value);
+};
+
+}());
+
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
