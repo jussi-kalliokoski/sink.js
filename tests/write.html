@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="../sink.js"></script>
+		<script>
+(function(){
+
+var	noise	= new Float32Array(100000),
+	dev;
+
+for (dev=0; dev<noise.length; dev+=2){
+	noise[dev] = noise[dev+1] = Math.random() * 0.3;
+}
+
+window.onload	= function(){
+	dev	= Sink();
+};
+
+window.sync	= function(){
+	dev.writeBufferSync(noise);
+};
+
+window.async	= function(){
+	dev.writeBufferAsync(noise, +document.getElementById('d').value);
+};
+
+}());
+
+		</script>
+	</head>
+	<body>
+		<button onclick="async()">Async</button> <input id="d" placeholder="Async delay"> <br/>
+		<button onclick="sync()">Sync</button>
+	</body>
+</html>

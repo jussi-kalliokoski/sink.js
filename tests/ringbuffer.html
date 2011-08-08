@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="../sink.js"></script>
+		<script>
+(function(){
+
+var	noise	= new Float32Array(100000),
+	dev;
+
+for (dev=0; dev<noise.length; dev+=2){
+	noise[dev] = noise[dev+1] = Math.random() * 0.3;
+}
+
+window.onload	= function(){
+	dev	= Sink();
+	dev.ringBuffer = noise;
+};
+
+}());
+
+		</script>
+	</head>
+	<body>
+	</body>
+</html>

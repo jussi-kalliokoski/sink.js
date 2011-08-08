@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="../sink.js"></script>
+		<script>
+(function(){
+
+var	dev;
+
+window.onload	= function(){
+	dev	= Sink(function(buffer){
+		var i;
+		for (i=0; i<buffer.length; i++){
+			buffer[i] = (Math.random() - 0.5) * 0.5;
+		}
+	});
+};
+
+}());
+
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
