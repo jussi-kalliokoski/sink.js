@@ -433,12 +433,13 @@ Sink.deinterleave = function(buffer, channelCount){
  * @param {Array} buffers The buffers to join.
 */
 
-Sink.interleave = function(buffers){
-	var	channelCount	= buffers.length,
-		l		= buffers[0].length,
+Sink.interleave = function(buffers, channelCount){
+	channelCount		= channelCount || buffers.length;
+	var	l		= buffers[0].length,
+		bufferCount	= buffers.length,
 		buffer		= new Float32Array(l * channelCount),
 		i, n;
-	for (i=0; i<channelCount; i++){
+	for (i=0; i<bufferCount; i++){
 		for (n=0; n<l; n++){
 			buffer[i + n * channelCount] = buffers[i][n];
 		}
@@ -461,6 +462,21 @@ Sink.mix = function(buffer){
 		for (i=0; i<l; i++){
 			buffer[i] += buffers[c][i];
 		}
+	}
+	return buffer;
+};
+
+/**
+ * Resets a buffer to all zeroes.
+ *
+ * @param {Array} buffer The buffer to reset.
+*/
+
+Sink.resetBuffer = function(buffer){
+	var	l	= buffer.length,
+		i;
+	for (i=0; i<l; i++){
+		buffer[i] = 0;
 	}
 	return buffer;
 };
