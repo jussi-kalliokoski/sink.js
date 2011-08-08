@@ -71,6 +71,7 @@ SinkClass.prototype = {
 	channelCount: 2,
 	preBufferSize: 4096,
 	writeMode: 'async',
+	channelMode: 'interleaved',
 	previousHit: 0,
 	ringBuffer: null,
 	ringOffset: 0,
@@ -84,10 +85,18 @@ SinkClass.prototype = {
 		this.asyncBuffers	= [];
 		this.syncBuffers	= [];
 	},
-	process: function(){
-		this.ringBuffer && this.ringSpin.apply(this, arguments);
+	process: function(soundData){
+		this.ringBuffer && (this.channelMode === 'interleaved' ? this.ringSpin : this.ringSpinInterleaved).apply(this, arguments);
 		this.writeBuffersSync.apply(this, arguments);
-		this.readFn && this.readFn.apply(this, arguments);
+		if (this.readFn){
+			if (this.channelMode === 'interleaved'){
+				this.readFn.apply(this, arguments);
+			} else {
+				var soundDataSplit = Sink.deinterleave(soundData, this.channelCount);
+				this.readFn.apply(this, [].concat([].slice.call(arguments, 1)));
+				Sink.interleave(soundDataSplit, this.channelCount, soundData);
+			}
+		}
 		this.writeBuffersAsync.apply(this, arguments);
 		this.recordData.apply(this, arguments);
 		this.previousHit = +new Date;
@@ -142,6 +151,7 @@ SinkClass.prototype = {
 		}
 	},
 	writeBufferAsync: function(buffer, delay){
+		buffer			= this.mode === 'deinterleaved' ? Sink.interleave(buffer, this.channelCount) : buffer;
 		var	buffers		= this.asyncBuffers;
 		buffers.push({
 			b: buffer,
@@ -150,6 +160,7 @@ SinkClass.prototype = {
 		return buffers.length;
 	},
 	writeBufferSync: function(buffer){
+		buffer			= this.mode === 'deinterleaved' ? Sink.interleave(buffer, this.channelCount) : buffer;
 		var	buffers		= this.syncBuffers;
 		buffers.push(buffer);
 		return buffers.length;
@@ -170,11 +181,27 @@ SinkClass.prototype = {
 		var	ring	= this.ringBuffer,
 			l	= buffer.length,
 			m	= ring.length,
-			n	= this.ringOffset,
+			off	= this.ringOffset,
 			i;
 		for (i=0; i<l; i++){
-			buffer[i] += ring[n];
-			n = (n + 1) % m;
+			buffer[i] += ring[off];
+			off = (off + 1) % m;
+		}
+		this.ringOffset = off;
+	},
+	ringSpinDeinterleaved: function(buffer){
+		var	ring	= this.ringBuffer,
+			l	= buffer.length,
+			ch	= ring.length,
+			m	= ring[0].length,
+			len	= ch * m,
+			off	= this.ringOffset,
+			i, n;
+		for (i=0; i<l; i+=ch){
+			for (n=0; n<ch; n++){
+				buffer[i + n] += ring[n][off];
+			}
+			off = (off + 1) % m;
 		}
 		this.ringOffset = n;
 	}
@@ -428,17 +455,19 @@ Sink.deinterleave = function(buffer, channelCount){
 };
 
 /**
- * Joins an array of sample buffers in a single buffer.
+ * Joins an array of sample buffers into a single buffer.
  *
  * @param {Array} buffers The buffers to join.
+ * @param {Number} channelCount The number of channels. Defaults to buffers.length
+ * @param {Array} buffer The output buffer. (optional)
 */
 
-Sink.interleave = function(buffers, channelCount){
+Sink.interleave = function(buffers, channelCount, buffer){
 	channelCount		= channelCount || buffers.length;
 	var	l		= buffers[0].length,
 		bufferCount	= buffers.length,
-		buffer		= new Float32Array(l * channelCount),
 		i, n;
+	buffer			= buffer || new Float32Array(l * channelCount);
 	for (i=0; i<bufferCount; i++){
 		for (n=0; n<l; n++){
 			buffer[i + n * channelCount] = buffers[i][n];
@@ -479,6 +508,40 @@ Sink.resetBuffer = function(buffer){
 		buffer[i] = 0;
 	}
 	return buffer;
+};
+
+/**
+ * Copies the content of an array to another array.
+ *
+ * @param {Array} buffer The buffer to copy from.
+ * @param {Array} result The buffer to copy to. Optional.
+*/
+
+Sink.clone = function(buffer, result){
+	var	l	= buffer.length,
+		i;
+	result = result || new Float32Array(l);
+	for (i=0; i<l; i++){
+		result[i] = buffer[i];
+	}
+	return result;
+};
+
+/**
+ * Creates an array of buffers of the specified length and the specified count.
+ *
+ * @param {Number} length The length of a single channel.
+ * @param {Number} channelCount The number of channels.
+ * @return {Array} The array of buffers.
+*/
+
+Sink.createDeinterleaved = function(length, channelCount){
+	var	result	= new Array(channelCount),
+		i;
+	for (i=0; i<channelCount; i++){
+		result[i] = new Float32Array(length);
+	}
+	return result;
 };
 
 global.Sink = Sink;
