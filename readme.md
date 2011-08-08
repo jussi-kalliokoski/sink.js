@@ -1,7 +1,7 @@
 sink.js
 =======
 
-sink.js is a javascript library dedicated for audio output. Features include buffer fill callbacks, synchronous write, asynchronous write and recording. Currently supported platforms are Firefox 4+ and Chrome with Web Audio API enabled in ``` about:flags ```. Additional platforms, such as a flash fallback can be added as plugins, but are currently not featured, nor will ever be enabled by default. For a platform to be added as enabled by default, it needs to be reliable in terms of latency and stability. Flash fallbacks – for example – cannot offer this kind of reliability and the sound will always be flaky at best.
+sink.js is a javascript library dedicated for audio output. Features include buffer fill callbacks, synchronous write, asynchronous write, ring buffers and recording. Currently supported platforms are Firefox 4+ and Chrome with Web Audio API enabled in ``` about:flags ```. Additional platforms, such as a flash fallback can be added as plugins, but are currently not featured, nor will ever be enabled by default. For a platform to be added as enabled by default, it needs to be reliable in terms of latency and stability. Flash fallbacks – for example – cannot offer this kind of reliability and the sound will always be flaky at best.
 
 Usage
 -----
@@ -36,6 +36,42 @@ Another mode of writing is "sync". You can set this by changing your sink's ``` 
 Beware of writing zero-length buffers, as they will induce NaNs to your buffers. This can be a bad thing especially if written in the "sync" mode and combined with some effects processing in a callback.
 
 To bring the sink to a force stop, you can use the ``` .kill() ``` method. But so far, this doesn't work in Chrome, and the Chrome's AudioContext can't be taken down. This will be fixed as soon as possible. Also, beware of creating multiple sinks to avoid unexpected results.
+
+### Recording
+
+Recording can be done by creating an instance of the recording, like this:
+
+```javascript
+
+var recording = sink.record();
+
+// And when you want to stop recording:
+
+recording.stop();
+
+// To join the recording into a single buffer:
+
+var buffer = recording.join();
+
+```
+
+### Ring buffer
+
+Here's an example how to use the ring buffer:
+
+```javascript
+
+// Enable & create the ring buffer
+
+sink.ringBuffer = new Float32Array(sink.sampleRate * sink.channelCount);
+
+// Get or modify the current offset of the ring buffer.
+
+console.log(sink.ringOffset);
+
+```
+
+That would create a ring buffer of the length of a single second, and you can manipulate that anyway you want, and use it together with callbacks and / or writing.
 
 Projects using sink.js
 ----------------------
