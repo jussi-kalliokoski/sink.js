@@ -93,7 +93,7 @@ SinkClass.prototype = {
 				this.readFn.apply(this, arguments);
 			} else {
 				var soundDataSplit = Sink.deinterleave(soundData, this.channelCount);
-				this.readFn.apply(this, [].concat([].slice.call(arguments, 1)));
+				this.readFn.apply(this, [soundDataSplit].concat([].slice.call(arguments, 1)));
 				Sink.interleave(soundDataSplit, this.channelCount, soundData);
 			}
 		}
