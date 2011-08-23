@@ -106,6 +106,10 @@ SinkClass.prototype = {
 */
 	preBufferSize: 4096,
 /**
+ * Write position of the sink, as in how many samples have been written per channel.
+*/
+	writePosition: 0,
+/**
  * The default mode of writing to the sink.
 */
 	writeMode: 'async',
@@ -144,7 +148,7 @@ SinkClass.prototype = {
  * The method which will handle all the different types of processing applied on a callback.
  * @private
 */
-	process: function(soundData){
+	process: function(soundData, channelCount){
 		this.ringBuffer && (this.channelMode === 'interleaved' ? this.ringSpin : this.ringSpinInterleaved).apply(this, arguments);
 		this.writeBuffersSync.apply(this, arguments);
 		if (this.readFn){
@@ -159,6 +163,7 @@ SinkClass.prototype = {
 		this.writeBuffersAsync.apply(this, arguments);
 		this.recordData.apply(this, arguments);
 		this.previousHit = +new Date;
+		this.writePosition += soundData.length / channelCount;
 	},
 /**
  * Starts recording the sink output.
@@ -285,6 +290,14 @@ SinkClass.prototype = {
 		return offset;
 	},
 /**
+ * Get the current output position, defaults to writePosition - preBufferSize.
+ *
+ * @return {Number} The position of the write head, in samples, per channel.
+*/
+	getPlaybackTime: function(){
+		return this.writePosition - preBufferSize;
+	},
+/**
  * A private method that applies the ring buffer contents to the specified buffer, while in interleaved mode.
  *
  * @private
@@ -390,7 +403,12 @@ sinks('moz', function(){
 	audioDevice.mozSetup(self.channelCount, self.sampleRate);
 
 	self.kill = Sink.doInterval(bufferFill, 20);
-	self._bufferFill = bufferFill;
+	self._bufferFill	= bufferFill;
+	self._audio		= audioDevice;
+}, {
+	getPlayBackTime: function(){
+		return this._audio.mozCurrentSampleOffset() / this.numberOfChannels
+	}
 });
 
 /**
@@ -435,7 +453,11 @@ sinks('webkit', function(readFn, channelCount, preBufferSize, sampleRate){
 	self._callback		= bufferFill;
 }, {
 	//TODO: Do something here.
-	kill: function(){}
+	kill: function(){
+	},
+	getPlaybackTime: function(){
+		return this._context.currentTime * this.sampleRate;
+	},
 });
 
 /**
