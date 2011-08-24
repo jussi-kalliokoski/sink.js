@@ -77,4 +77,5 @@ Projects using sink.js
 ----------------------
 
 * [aurora.js](https://github.com/jensnockert/aurora.js) A JS-powered video and audio playback framework.
+* [Audiolet](https://github.com/oampo/Audiolet) A comphrehensive, graph based audio synthesis / composition library for JS.
 * [audiolib.js](https://github.com/jussi-kalliokoski/audiolib.js) A full-fletched audio synthesis / processing framework.
