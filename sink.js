@@ -484,8 +484,8 @@ Sink.Recording		= Recording;
 Sink.doInterval		= function(callback, timeout){
 	var	BlobBuilder	= window.MozBlobBuilder || window.WebKitBlobBuilder || window.MSBlobBuilder || window.OBlobBuilder || window.BlobBuilder,
 		timer, id, prev;
-	if (Sink.doInterval.backgroundWork || Sink.devices.moz.backgroundWork){
-		if (BlobBuilder){
+	if ((Sink.doInterval.backgroundWork || Sink.devices.moz.backgroundWork) && BlobBuilder){
+		try{
 			prev	= new BlobBuilder();
 			prev.append('setInterval(function(){ postMessage("tic"); }, ' + timeout + ');');
 			id	= window.URL.createObjectURL(prev.getBlob());
@@ -497,27 +497,15 @@ Sink.doInterval		= function(callback, timeout){
 				timer.terminate();
 				window.URL.revokeObjectURL(id);
 			};
-		}
-		id = prev = +new Date + '';
-		function messageListener(e){
-			if (e.source === window && e.data === id && prev < +new Date){
-				prev = +new Date + timeout;
-				callback();
-			}
-			window.postMessage(id, '*');
-		}
-		window.addEventListener('message', messageListener, true);
-		window.postMessage(id, '*');
-		return function(){
-			window.removeEventListener('message', messageListener);
-		};
-	} else {
-		timer = setInterval(callback, timeout);
-		return function(){
-			clearInterval(timer);
-		};
+		} catch(e){};
 	}
+	timer = setInterval(callback, timeout);
+	return function(){
+		clearInterval(timer);
+	};
 };
+
+Sink.doInterval.backgroundWork = true;
 
 (function(){
 
