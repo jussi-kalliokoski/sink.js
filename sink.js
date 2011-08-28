@@ -406,7 +406,7 @@ sinks('moz', function(){
 	self._bufferFill	= bufferFill;
 	self._audio		= audioDevice;
 }, {
-	getPlayBackTime: function(){
+	getPlaybackTime: function(){
 		return this._audio.mozCurrentSampleOffset() / this.numberOfChannels
 	}
 });
