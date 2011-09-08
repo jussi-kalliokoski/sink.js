@@ -295,7 +295,7 @@ SinkClass.prototype = {
  * @return {Number} The position of the write head, in samples, per channel.
 */
 	getPlaybackTime: function(){
-		return this.writePosition - preBufferSize;
+		return this.writePosition - this.preBufferSize;
 	},
 /**
  * A private method that applies the ring buffer contents to the specified buffer, while in interleaved mode.
