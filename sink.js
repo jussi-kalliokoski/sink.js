@@ -419,7 +419,7 @@ sinks('webkit', function(readFn, channelCount, preBufferSize, sampleRate){
 	var	self		= this,
 		// For now, we have to accept that the AudioContext is at 48000Hz, or whatever it decides.
 		context		= new (window.AudioContext || webkitAudioContext)(/*sampleRate*/),
-		node		= context.createJavaScriptNode(preBufferSize, 0, channelCount);
+		node;
 	self.start.apply(self, arguments);
 
 	function bufferFill(e){
@@ -443,6 +443,7 @@ sinks('webkit', function(readFn, channelCount, preBufferSize, sampleRate){
 		}
 	}
 
+	node = context.createJavaScriptNode(self.preBufferSize, 0, channelCount);
 	node.onaudioprocess = bufferFill;
 	node.connect(context.destination);
 
