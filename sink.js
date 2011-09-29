@@ -415,6 +415,7 @@ sinks('moz', function(){
  * A sink class for the Web Audio API
 */
 
+sinks._webkit82795 = [];
 sinks('webkit', function(readFn, channelCount, preBufferSize, sampleRate){
 	var	self		= this,
 		// For now, we have to accept that the AudioContext is at 48000Hz, or whatever it decides.
@@ -448,9 +449,7 @@ sinks('webkit', function(readFn, channelCount, preBufferSize, sampleRate){
 
 	self.sampleRate		= context.sampleRate;
 	/* Keep references in order to avoid garbage collection removing the listeners, working around http://code.google.com/p/chromium/issues/detail?id=82795 */
-	self._context		= context;
-	self._node		= node;
-	self._callback		= bufferFill;
+	sinks._webkit82795.push(node);
 }, {
 	//TODO: Do something here.
 	kill: function(){
