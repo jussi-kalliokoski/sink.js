@@ -135,9 +135,9 @@ SinkClass.prototype = {
  * @private
 */
 	start: function(readFn, channelCount, preBufferSize, sampleRate){
-		this.channelCount	= isNaN(channelCount) ? this.channelCount: channelCount;
-		this.preBufferSize	= isNaN(preBufferSize) ? this.preBufferSize : preBufferSize;
-		this.sampleRate		= isNaN(sampleRate) ? this.sampleRate : sampleRate;
+		this.channelCount	= isNaN(channelCount) || channelCount === null ? this.channelCount: channelCount;
+		this.preBufferSize	= isNaN(preBufferSize) || preBufferSize === null ? this.preBufferSize : preBufferSize;
+		this.sampleRate		= isNaN(sampleRate) || sampleRate === null ? this.sampleRate : sampleRate;
 		this.readFn		= readFn;
 		this.activeRecordings	= [];
 		this.previousHit	= +new Date;
@@ -374,7 +374,7 @@ sinks('moz', function(){
 		timer; // Fix for https://bugzilla.mozilla.org/show_bug.cgi?id=630117
 	self.start.apply(self, arguments);
 	// TODO: All sampleRate & preBufferSize combinations don't work quite like expected, fix this.
-	self.preBufferSize = isNaN(arguments[2]) ? self.sampleRate / 2 : self.preBufferSize;
+	self.preBufferSize = isNaN(arguments[2]) || arguments[2] === null ? self.sampleRate / 2 : self.preBufferSize;
 
 	function bufferFill(){
 		if (tail){
@@ -430,7 +430,8 @@ sinks('webkit', function(readFn, channelCount, preBufferSize, sampleRate){
 			i, n, l		= outputBuffer.length,
 			size		= outputBuffer.size,
 			channels	= new Array(channelCount),
-			soundData	= new Float32Array(l * channelCount);
+			soundData	= new Float32Array(l * channelCount),
+			tail;
 
 		for (i=0; i<channelCount; i++){
 			channels[i] = outputBuffer.getChannelData(i);
@@ -445,10 +446,36 @@ sinks('webkit', function(readFn, channelCount, preBufferSize, sampleRate){
 		}
 	}
 
+	if (sinks.webkit.forceSampleRate && self.sampleRate !== context.sampleRate){
+		bufferFill = function bufferFill(e){
+			var	outputBuffer	= e.outputBuffer,
+				channelCount	= outputBuffer.numberOfChannels,
+				i, n, l		= outputBuffer.length,
+				size		= outputBuffer.size,
+				channels	= new Array(channelCount),
+				soundData	= new Float32Array(Math.floor(l * self.sampleRate / context.sampleRate) * channelCount),
+				channel;
+
+			for (i=0; i<channelCount; i++){
+				channels[i] = outputBuffer.getChannelData(i);
+			}
+
+			self.process(soundData, self.channelCount);
+			soundData = Sink.deinterleave(soundData, self.channelCount);
+			for (n=0; n<channelCount; n++){
+				channel = Sink.resample(soundData[n], self.sampleRate, context.sampleRate);
+				for (i=0; i<l; i++){
+					channels[n][i] = channel[i];
+				}
+			}
+		}
+	} else {
+		self.sampleRate = context.sampleRate;
+	}
+
 	node.onaudioprocess = bufferFill;
 	node.connect(context.destination);
 
-	self.sampleRate		= context.sampleRate;
 	self._context		= context;
 	self._node		= node;
 	self._callback		= bufferFill;
