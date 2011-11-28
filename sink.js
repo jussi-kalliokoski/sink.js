@@ -273,7 +273,7 @@ SinkClass.prototype = {
  * @return {Number} The number of currently stored (a)synchronous buffers.
 */
 	writeBuffer: function(){
-		this[this.writeMode === 'async' ? 'writeBufferAsync' : 'writeBufferSync'].apply(this, arguments);
+		return this[this.writeMode === 'async' ? 'writeBufferAsync' : 'writeBufferSync'].apply(this, arguments);
 	},
 /**
  * Gets the total amount of yet unwritten samples in the synchronous buffers.
