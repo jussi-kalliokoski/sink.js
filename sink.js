@@ -488,6 +488,11 @@ sinks('webkit', function(readFn, channelCount, bufferSize, sampleRate){
 }, {
 	//TODO: Do something here.
 	kill: function(){
+		this._node.disconnect(0);
+		for (var i=0; i<fixChrome82795.length; i++) {
+			fixChrome82795[i] === this._node && fixChrome82795.splice(i--, 1);
+		}
+		this._node = this._context = null;
 	},
 	getPlaybackTime: function(){
 		return this._context.currentTime * this.sampleRate;
