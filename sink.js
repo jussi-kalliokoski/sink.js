@@ -4,16 +4,16 @@
  *
  * @param {Function} readFn A callback to handle the buffer fills.
  * @param {number} channelCount Channel count.
- * @param {number} preBufferSize (Optional) Specifies a pre-buffer size to control the amount of latency.
+ * @param {number} bufferSize (Optional) Specifies a pre-buffer size to control the amount of latency.
  * @param {number} sampleRate Sample rate (ms).
 */
-function Sink(readFn, channelCount, preBufferSize, sampleRate){
+function Sink(readFn, channelCount, bufferSize, sampleRate){
 	var	sinks	= Sink.sinks,
 		dev;
 	for (dev in sinks){
 		if (sinks.hasOwnProperty(dev) && sinks[dev].enabled){
 			try{
-				return new sinks[dev](readFn, channelCount, preBufferSize, sampleRate);
+				return new sinks[dev](readFn, channelCount, bufferSize, sampleRate);
 			} catch(e1){}
 		}
 	}
@@ -104,7 +104,7 @@ SinkClass.prototype = {
 /**
  * The amount of samples to pre buffer for the sink.
 */
-	preBufferSize: 4096,
+	bufferSize: 4096,
 /**
  * Write position of the sink, as in how many samples have been written per channel.
 */
@@ -134,9 +134,9 @@ SinkClass.prototype = {
  * Does the initialization of the sink.
  * @private
 */
-	start: function(readFn, channelCount, preBufferSize, sampleRate){
+	start: function(readFn, channelCount, bufferSize, sampleRate){
 		this.channelCount	= isNaN(channelCount) || channelCount === null ? this.channelCount: channelCount;
-		this.preBufferSize	= isNaN(preBufferSize) || preBufferSize === null ? this.preBufferSize : preBufferSize;
+		this.bufferSize	= isNaN(bufferSize) || bufferSize === null ? this.bufferSize : bufferSize;
 		this.sampleRate		= isNaN(sampleRate) || sampleRate === null ? this.sampleRate : sampleRate;
 		this.readFn		= readFn;
 		this.activeRecordings	= [];
@@ -290,12 +290,12 @@ SinkClass.prototype = {
 		return offset;
 	},
 /**
- * Get the current output position, defaults to writePosition - preBufferSize.
+ * Get the current output position, defaults to writePosition - bufferSize.
  *
  * @return {Number} The position of the write head, in samples, per channel.
 */
 	getPlaybackTime: function(){
-		return this.writePosition - this.preBufferSize;
+		return this.writePosition - this.bufferSize;
 	},
 /**
  * A private method that applies the ring buffer contents to the specified buffer, while in interleaved mode.
@@ -370,11 +370,10 @@ sinks('moz', function(){
 		currentWritePosition	= 0,
 		tail			= null,
 		audioDevice		= new Audio(),
-		written, currentPosition, available, soundData,
+		written, currentPosition, available, soundData, prevPos,
 		timer; // Fix for https://bugzilla.mozilla.org/show_bug.cgi?id=630117
 	self.start.apply(self, arguments);
-	// TODO: All sampleRate & preBufferSize combinations don't work quite like expected, fix this.
-	self.preBufferSize = isNaN(arguments[2]) || arguments[2] === null ? self.sampleRate / 2 : self.preBufferSize;
+	self.preBufferSize = isNaN(arguments[4]) || arguments[4] === null ? self.sampleRate / 2 : arguments[4];
 
 	function bufferFill(){
 		if (tail){
@@ -388,9 +387,9 @@ sinks('moz', function(){
 		}
 
 		currentPosition = audioDevice.mozCurrentSampleOffset();
-		available = Number(currentPosition + self.preBufferSize * self.channelCount - currentWritePosition);
+		available = Number(currentPosition + (prevPos !== currentPosition ? self.bufferSize : self.preBufferSize) * self.channelCount - currentWritePosition);
 		if (available > 0){
-			soundData = new Float32Array(available);
+			soundData = new Float32Array(prevPos !== currentPosition ? self.bufferSize : available);
 			self.process(soundData, self.channelCount);
 			written = audioDevice.mozWriteAudio(soundData);
 			if (written < soundData.length){
@@ -398,6 +397,7 @@ sinks('moz', function(){
 			}
 			currentWritePosition += written;
 		}
+		prevPos = currentPosition;
 	}
 
 	audioDevice.mozSetup(self.channelCount, self.sampleRate);
@@ -406,6 +406,9 @@ sinks('moz', function(){
 	self._bufferFill	= bufferFill;
 	self._audio		= audioDevice;
 }, {
+	// These are somewhat safe values...
+	bufferSize: 16384,
+	preBufferSize: 24576,
 	getPlaybackTime: function(){
 		return this._audio.mozCurrentSampleOffset() / this.channelCount;
 	}
@@ -417,11 +420,11 @@ sinks('moz', function(){
 
 var fixChrome82795 = [];
 
-sinks('webkit', function(readFn, channelCount, preBufferSize, sampleRate){
+sinks('webkit', function(readFn, channelCount, bufferSize, sampleRate){
 	var	self		= this,
 		// For now, we have to accept that the AudioContext is at 48000Hz, or whatever it decides.
 		context		= new (window.AudioContext || webkitAudioContext)(/*sampleRate*/),
-		node		= context.createJavaScriptNode(preBufferSize, 0, channelCount);
+		node		= context.createJavaScriptNode(bufferSize, 0, channelCount);
 	self.start.apply(self, arguments);
 
 	function bufferFill(e){
@@ -502,11 +505,11 @@ sinks('dummy', function(){
 	self.start.apply(self, arguments);
 	
 	function bufferFill(){
-		var	soundData = new Float32Array(self.preBufferSize * self.channelCount);
+		var	soundData = new Float32Array(self.bufferSize * self.channelCount);
 		self.process(soundData, self.channelCount);
 	}
 
-	self.kill = Sink.doInterval(bufferFill, self.preBufferSize / self.sampleRate * 1000);
+	self.kill = Sink.doInterval(bufferFill, self.bufferSize / self.sampleRate * 1000);
 
 	self._callback		= bufferFill;
 }, null, true);
