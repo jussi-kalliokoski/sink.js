@@ -14,6 +14,10 @@ window.onload	= function(){
 			buffer[i] = (Math.random() - 0.5) * 0.5;
 		}
 	});
+
+	dev.on('error', function(e){
+		console.error(e);
+	});
 };
 
 }());

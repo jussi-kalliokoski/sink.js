@@ -15,6 +15,10 @@ for (dev=0; dev<noise.length; dev+=2){
 window.onload	= function(){
 	dev	= Sink();
 	dev.ringBuffer = noise;
+
+	dev.on('error', function(e){
+		console.error(e);
+	});
 };
 
 }());

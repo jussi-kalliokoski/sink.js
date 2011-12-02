@@ -31,6 +31,10 @@ window.onload	= function(){
 	dev	= Sink(fillCall);
 	dev.channelMode = 'deinterleaved';
 	oscs	= [SineWave(dev.sampleRate, 440), SineWave(dev.sampleRate, 660)];
+
+	dev.on('error', function(e){
+		console.error(e);
+	});
 };
 
 window.sync	= function(){
