@@ -1,4 +1,5 @@
 (function (global){
+
 /**
  * Creates a Sink according to specified parameters, if possible.
  *
@@ -20,6 +21,49 @@ function Sink(readFn, channelCount, bufferSize, sampleRate){
 
 	throw "No audio sink available.";
 }
+
+/**
+ * A light event emitter.
+*/
+function EventEmitter () {
+	var k;
+	for (k in EventEmitter.prototype) {
+		if (EventEmitter.prototype.hasOwnProperty(k)) {
+			this[k] = EventEmitter.prototype[k];
+		}
+	}
+	this._listeners = {};
+};
+
+EventEmitter.prototype = {
+	_listeners: null,
+	emit: function (name, args) {
+		if (this._listeners[name]) {
+			for (var i=0; i<this._listeners[name].length; i++) {
+				this._listeners[name][i].apply(this, args);
+			}
+		}
+		return this;
+	},
+	on: function (name, listener) {
+		this._listeners[name] = this._listeners[name] || [];
+		this._listeners[name].push(listener);
+		return this;
+	},
+	off: function (name, listener) {
+		if (this._listeners[name]) {
+			for (var i=0; i<this._listeners[name].length; i++) {
+				if (this._listeners[name][i] === listener) {
+					this._listeners[name].splice(i--, 1);
+				}
+			}
+		}
+		this._listeners[name].length || delete this._listeners[name];
+		return this;
+	},
+};
+
+Sink.EventEmitter = EventEmitter;
 
 /**
  * A Recording class for recording sink output.
@@ -143,22 +187,24 @@ SinkClass.prototype = {
 		this.previousHit	= +new Date;
 		this.asyncBuffers	= [];
 		this.syncBuffers	= [];
+		Sink.EventEmitter.call(this);
 	},
 /**
  * The method which will handle all the different types of processing applied on a callback.
  * @private
 */
-	process: function(soundData, channelCount){
+	process: function(soundData, channelCount) {
 		this.ringBuffer && (this.channelMode === 'interleaved' ? this.ringSpin : this.ringSpinInterleaved).apply(this, arguments);
 		this.writeBuffersSync.apply(this, arguments);
-		if (this.readFn){
-			if (this.channelMode === 'interleaved'){
-				this.readFn.apply(this, arguments);
-			} else {
-				var soundDataSplit = Sink.deinterleave(soundData, this.channelCount);
-				this.readFn.apply(this, [soundDataSplit].concat([].slice.call(arguments, 1)));
-				Sink.interleave(soundDataSplit, this.channelCount, soundData);
-			}
+		if (this.channelMode === 'interleaved') {
+			this.readFn && this.readFn.apply(this, arguments);
+			this.emit('audioprocess', arguments);
+		} else {
+			var	soundDataSplit	= Sink.deinterleave(soundData, this.channelCount),
+				args		= [soundDataSplit].concat([].slice.call(arguments, 1));
+			this.readFn && this.readFn.apply(this, args);
+			this.emit('audioprocess', args);
+			Sink.interleave(soundDataSplit, this.channelCount, soundData);
 		}
 		this.writeBuffersAsync.apply(this, arguments);
 		this.recordData.apply(this, arguments);
@@ -415,14 +461,18 @@ sinks('moz', function(){
 		}
 	}, 1000);
 
-	self.kill = Sink.doInterval(bufferFill, 20);
+	self._kill = Sink.doInterval(bufferFill, 20);
 	self._bufferFill	= bufferFill;
 	self._audio		= audioDevice;
 }, {
 	// These are somewhat safe values...
 	bufferSize: 24576,
 	preBufferSize: 24576,
-	getPlaybackTime: function(){
+	kill: function () {
+		this._kill();
+		this.emit('kill');
+	},
+	getPlaybackTime: function() {
 		return this._audio.mozCurrentSampleOffset() / this.channelCount;
 	}
 });
@@ -506,6 +556,8 @@ sinks('webkit', function(readFn, channelCount, bufferSize, sampleRate){
 			fixChrome82795[i] === this._node && fixChrome82795.splice(i--, 1);
 		}
 		this._node = this._context = null;
+		this.kill();
+		this.emit('kill');
 	},
 	getPlaybackTime: function(){
 		return this._context.currentTime * this.sampleRate;
@@ -527,10 +579,15 @@ sinks('dummy', function(){
 		self.process(soundData, self.channelCount);
 	}
 
-	self.kill = Sink.doInterval(bufferFill, self.bufferSize / self.sampleRate * 1000);
+	self._kill = Sink.doInterval(bufferFill, self.bufferSize / self.sampleRate * 1000);
 
 	self._callback		= bufferFill;
-}, null, true);
+}, {
+	kill: function () {
+		this._kill();
+		this.emit('kill');
+	},
+}, true);
 
 Sink.sinks		= Sink.devices = sinks;
 Sink.Recording		= Recording;
