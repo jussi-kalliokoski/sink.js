@@ -373,7 +373,7 @@ sinks('moz', function(){
 		written, currentPosition, available, soundData, prevPos,
 		timer; // Fix for https://bugzilla.mozilla.org/show_bug.cgi?id=630117
 	self.start.apply(self, arguments);
-	self.preBufferSize = isNaN(arguments[4]) || arguments[4] === null ? self.sampleRate / 2 : arguments[4];
+	self.preBufferSize = isNaN(arguments[4]) || arguments[4] === null ? this.preBufferSize : arguments[4];
 
 	function bufferFill(){
 		if (tail){
@@ -388,10 +388,13 @@ sinks('moz', function(){
 
 		currentPosition = audioDevice.mozCurrentSampleOffset();
 		available = Number(currentPosition + (prevPos !== currentPosition ? self.bufferSize : self.preBufferSize) * self.channelCount - currentWritePosition);
-		if (available > 0){
-			soundData = new Float32Array(prevPos !== currentPosition ? self.bufferSize : available);
+// TODO: Add error reporting
+		if (available > 0 || prevPos === currentPosition){
+			try {
+			soundData = new Float32Array(prevPos === currentPosition ? self.preBufferSize * self.channelCount : available);
+			} catch(e) { console.error(prevPos !== currentPosition, available); return; }
 			self.process(soundData, self.channelCount);
-			written = audioDevice.mozWriteAudio(soundData);
+			written = self._audio.mozWriteAudio(soundData);
 			if (written < soundData.length){
 				tail = soundData.subarray(written);
 			}
@@ -402,12 +405,22 @@ sinks('moz', function(){
 
 	audioDevice.mozSetup(self.channelCount, self.sampleRate);
 
+	Sink.doInterval(function () {
+		// Check for complete death of the output
+		if (+new Date - self.previousHit > 2000) {
+			self._audio = audioDevice = new Audio();
+			audioDevice.mozSetup(self.channelCount, self.sampleRate);
+			currentWritePosition = 0;
+// TODO: Add error reporting
+		}
+	}, 1000);
+
 	self.kill = Sink.doInterval(bufferFill, 20);
 	self._bufferFill	= bufferFill;
 	self._audio		= audioDevice;
 }, {
 	// These are somewhat safe values...
-	bufferSize: 16384,
+	bufferSize: 24576,
 	preBufferSize: 24576,
 	getPlaybackTime: function(){
 		return this._audio.mozCurrentSampleOffset() / this.channelCount;
