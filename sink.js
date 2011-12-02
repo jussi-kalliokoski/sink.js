@@ -451,7 +451,9 @@ sinks('moz', function(){
 
 	audioDevice.mozSetup(self.channelCount, self.sampleRate);
 
-	Sink.doInterval(function () {
+	this._timers = [];
+
+	this._timers.push(Sink.doInterval(function () {
 		// Check for complete death of the output
 		if (+new Date - self.previousHit > 2000) {
 			self._audio = audioDevice = new Audio();
@@ -459,9 +461,10 @@ sinks('moz', function(){
 			currentWritePosition = 0;
 // TODO: Add error reporting
 		}
-	}, 1000);
+	}, 1000));
 
-	self._kill = Sink.doInterval(bufferFill, 20);
+	this._timers.push(Sink.doInterval(bufferFill, 20));
+
 	self._bufferFill	= bufferFill;
 	self._audio		= audioDevice;
 }, {
@@ -469,7 +472,10 @@ sinks('moz', function(){
 	bufferSize: 24576,
 	preBufferSize: 24576,
 	kill: function () {
-		this._kill();
+		while(this._timers.length){
+			this._timers[0]();
+			this._timers.splice(0, 1);
+		}
 		this.emit('kill');
 	},
 	getPlaybackTime: function() {
