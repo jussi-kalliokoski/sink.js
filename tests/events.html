@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="../sink.js"></script>
+		<script>
+(function(){
+
+var	dev, callbacks;
+
+window.onload	= function(){
+	dev	= Sink();
+	callbacks = [440, 660, 880].map(function(frequency){
+		var p = 0;
+		function callback(buffer, channelCount) {
+			var i, n;
+			for (i=0; i<buffer.length; i+=channelCount) {
+				p = (p + frequency / dev.sampleRate / 2) % 1;
+				for (n=0; n<channelCount; n++) {
+					buffer[i+n] += Math.sin(p * Math.PI * 2) * 0.2;
+				}
+			}
+		}
+		dev.on('audioprocess', callback);
+		return callback;
+	});
+	setTimeout(function(){
+		dev.off('audioprocess', callbacks[1]);
+		dev.off('audioprocess', callbacks[2]);
+	}, 2000);
+	setTimeout(function(){
+		dev.kill();
+	}, 5000);
+	dev.on('kill', function(){
+		console.log('It died');
+	});
+};
+
+}());
+
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
