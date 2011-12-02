@@ -478,7 +478,7 @@ sinks('moz', function(){
 
 		currentPosition = audioDevice.mozCurrentSampleOffset();
 		available = Number(currentPosition + (prevPos !== currentPosition ? self.bufferSize : self.preBufferSize) * self.channelCount - currentWritePosition);
-		self.on('error', Sink.Error(0x10));
+		self.emit('error', Sink.Error(0x10));
 		if (available > 0 || prevPos === currentPosition){
 			try {
 			soundData = new Float32Array(prevPos === currentPosition ? self.preBufferSize * self.channelCount : available);
@@ -503,7 +503,7 @@ sinks('moz', function(){
 			self._audio = audioDevice = new Audio();
 			audioDevice.mozSetup(self.channelCount, self.sampleRate);
 			currentWritePosition = 0;
-			self.on('error', Sink.Error(0x11));
+			self.emit('error', Sink.Error(0x11));
 		}
 	}, 1000));
 
