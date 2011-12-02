@@ -33,6 +33,9 @@ window.onload	= function(){
 	dev.on('kill', function(){
 		console.log('It died');
 	});
+	dev.on('error', function(e){
+		console.error(e);
+	});
 };
 
 }());

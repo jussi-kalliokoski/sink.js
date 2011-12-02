@@ -65,6 +65,46 @@ EventEmitter.prototype = {
 
 Sink.EventEmitter = EventEmitter;
 
+/*
+ * A Sink-specific error class.
+*/
+
+function SinkError(code) {
+	if (!SinkError.hasOwnProperty(code)) throw SinkError(1);
+	if (!(this instanceof SinkError)) return new SinkError(code);
+
+	var k;
+	for (k in SinkError[code]) {
+		if (SinkError[code].hasOwnProperty(k)) {
+			this[k] = SinkError[code][k];
+		}
+	}
+
+	this.code = code;
+}
+
+SinkError.prototype = new Error();
+
+SinkError.prototype.toString = function () {
+	return 'SinkError 0x' + this.code.toString(16) + ': ' + this.message;
+};
+
+SinkError[0x01] = {
+	message: 'No such error code.',
+	explanation: 'The error code does not exist.',
+};
+
+SinkError[0x10] = {
+	message: 'Buffer underflow.',
+	explanation: 'Trying to recover...',
+};
+SinkError[0x11] = {
+	message: 'Critical recovery fail.',
+	explanation: 'The buffer underflow has reached a critical point, trying to recover, but will probably fail anyway.',
+};
+
+Sink.Error = SinkError;
+
 /**
  * A Recording class for recording sink output.
  *
@@ -434,7 +474,7 @@ sinks('moz', function(){
 
 		currentPosition = audioDevice.mozCurrentSampleOffset();
 		available = Number(currentPosition + (prevPos !== currentPosition ? self.bufferSize : self.preBufferSize) * self.channelCount - currentWritePosition);
-// TODO: Add error reporting
+		self.on('error', Sink.Error(0x10));
 		if (available > 0 || prevPos === currentPosition){
 			try {
 			soundData = new Float32Array(prevPos === currentPosition ? self.preBufferSize * self.channelCount : available);
@@ -459,7 +499,7 @@ sinks('moz', function(){
 			self._audio = audioDevice = new Audio();
 			audioDevice.mozSetup(self.channelCount, self.sampleRate);
 			currentWritePosition = 0;
-// TODO: Add error reporting
+			self.on('error', Sink.Error(0x11));
 		}
 	}, 1000));
 
