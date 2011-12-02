@@ -19,7 +19,7 @@ function Sink(readFn, channelCount, bufferSize, sampleRate){
 		}
 	}
 
-	throw "No audio sink available.";
+	throw Sink.Error(0x02);
 }
 
 /**
@@ -92,6 +92,10 @@ SinkError.prototype.toString = function () {
 SinkError[0x01] = {
 	message: 'No such error code.',
 	explanation: 'The error code does not exist.',
+};
+SinkError[0x02] = {
+	message: 'No audio sink available.',
+	explanation: 'The audio device may be busy, or no supported output API is available for this browser.',
 };
 
 SinkError[0x10] = {
