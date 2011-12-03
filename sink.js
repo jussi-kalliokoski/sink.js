@@ -52,13 +52,17 @@ EventEmitter.prototype = {
 	},
 	off: function (name, listener) {
 		if (this._listeners[name]) {
+			if (!listener) {
+				delete this._listeners[name];
+				return this;
+			}
 			for (var i=0; i<this._listeners[name].length; i++) {
 				if (this._listeners[name][i] === listener) {
 					this._listeners[name].splice(i--, 1);
 				}
 			}
+			this._listeners[name].length || delete this._listeners[name];
 		}
-		this._listeners[name].length || delete this._listeners[name];
 		return this;
 	},
 };
@@ -650,27 +654,119 @@ sinks('dummy', function(){
 Sink.sinks		= Sink.devices = sinks;
 Sink.Recording		= Recording;
 
-Sink.doInterval		= function(callback, timeout){
-	var	BlobBuilder	= typeof window === 'undefined' ? undefined : window.MozBlobBuilder || window.WebKitBlobBuilder || window.MSBlobBuilder || window.OBlobBuilder || window.BlobBuilder,
-		timer, id, prev;
-	if ((Sink.doInterval.backgroundWork || Sink.devices.moz.backgroundWork) && BlobBuilder){
-		try{
-			prev	= new BlobBuilder();
-			prev.append('setInterval(function(){ postMessage("tic"); }, ' + timeout + ');');
-			id	= (window.MozURL || window.webkitURL || window.MSURL || window.OURL || window.URL).createObjectURL(prev.getBlob());
-			timer	= new Worker(id);
+(function(){
+
+var	BlobBuilder	= typeof window === 'undefined' ? undefined :
+	window.MozBlobBuilder || window.WebKitBlobBuilder || window.MSBlobBuilder || window.OBlobBuilder || window.BlobBuilder,
+	URL		= typeof window === 'undefined' ? undefined : (window.MozURL || window.webkitURL || window.MSURL || window.OURL || window.URL);
+
+function inlineWorker (script) {
+	var	worker	= null,
+		url, bb;
+	try {
+		bb	= new BlobBuilder();
+		bb.append(script);
+		url	= URL.createObjectURL(bb.getBlob());
+		worker	= new Worker(url);
+
+		worker._terminate	= worker.terminate;
+		worker._url		= url;
+		bb			= null;
+
+		worker.terminate = function () {
+			this._terminate;
+			URL.revokeObjectURL(this._url);
+		};
+
+		inlineWorker.type = 'blob';
+
+		return worker;
+
+	} catch (e) {}
+
+	try {
+		worker			= new Worker('data:text/javascript;base64,' + btoa(script));
+		inlineWorker.type	= 'data';
+
+		return worker;
+
+	} catch (e) {}
+
+	return worker;
+}
+
+inlineWorker.ready = inlineWorker.working = false;
+
+Sink.EventEmitter.call(inlineWorker);
+
+inlineWorker.test = function () {
+	var	worker	= inlineWorker('this.onmessage=function(e){postMessage(e.data)}'),
+		data	= 'inlineWorker';
+	inlineWorker.ready = inlineWorker.working = false;
+
+	function ready(success) {
+		if (inlineWorker.ready) return;
+		inlineWorker.ready	= true;
+		inlineWorker.working	= success;
+		inlineWorker.emit('ready', [success]);
+		inlineWorker.off('ready');
+	}
+
+	if (!worker) {
+		ready(false);
+	} else {
+		worker.onmessage = function (e) {
+			ready(e.data === data);
+		};
+		worker.postMessage(data);
+		setTimeout(function () {
+			ready(false);
+		}, 1000);
+	}
+};
+
+Sink.inlineWorker = inlineWorker;
+
+inlineWorker.test();
+
+}());
+
+Sink.doInterval		= function (callback, timeout) {
+	var timer, kill;
+
+	function create (noWorker) {
+		if (Sink.inlineWorker.working && !noWorker) {
+			timer = Sink.inlineWorker('setInterval(function(){ postMessage("tic"); }, ' + timeout + ');');
 			timer.onmessage = function(){
 				callback();
 			};
-			return function(){
+			kill = function () {
 				timer.terminate();
-				(window.MozURL || window.webkitURL || window.MSURL || window.OURL || window.URL).revokeObjectURL(id);
 			};
-		} catch(e){};
+		} else {
+			timer = setInterval(callback, timeout);
+			kill = function(){
+				clearInterval(timer);
+			};
+		}
 	}
-	timer = setInterval(callback, timeout);
-	return function(){
-		clearInterval(timer);
+
+	if (Sink.doInterval.backgroundWork || Sink.devices.moz.backgroundWork){
+		Sink.inlineWorker.ready ? create() : Sink.inlineWorker.on('ready', function(){
+			create();
+		});
+	} else {
+		create(true);
+	}
+
+	return function () {
+		if (!kill) {
+			Sink.inlineWorker.ready || Sink.inlineWorker.on('ready', function () {
+				kill && kill();
+			});
+		} else {
+			kill();
+		}
 	};
 };
 

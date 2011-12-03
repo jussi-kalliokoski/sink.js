@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="../sink.js"></script>
+		</script>
+	</head>
+	<body>
+		<script>
+(function(){
+
+function result () {
+	if (Sink.inlineWorker.working) {
+		console.log('It works');
+		console.log('Worker type: ' + Sink.inlineWorker.type);
+	} else {
+		console.log('It doesn\'t work.');
+	}
+}
+
+Sink.inlineWorker.ready ? result() : Sink.inlineWorker.on('ready', result);
+
+}());
+
+</script>
+
+	</body>
+</html>
