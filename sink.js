@@ -106,6 +106,10 @@ SinkError[0x11] = {
 	message: 'Critical recovery fail.',
 	explanation: 'The buffer underflow has reached a critical point, trying to recover, but will probably fail anyway.',
 };
+SinkError[0x12] = {
+	message: 'Buffer size too large.',
+	explanation: 'Unable to allocate the buffer due to excessive length, please try a smaller buffer. Buffer size should probably be smaller than the sample rate.',
+};
 
 Sink.Error = SinkError;
 
@@ -478,11 +482,15 @@ sinks('moz', function(){
 
 		currentPosition = audioDevice.mozCurrentSampleOffset();
 		available = Number(currentPosition + (prevPos !== currentPosition ? self.bufferSize : self.preBufferSize) * self.channelCount - currentWritePosition);
-		self.emit('error', [Sink.Error(0x10)]);
+		currentPosition === prevPos && self.emit('error', [Sink.Error(0x10)]);
 		if (available > 0 || prevPos === currentPosition){
 			try {
-			soundData = new Float32Array(prevPos === currentPosition ? self.preBufferSize * self.channelCount : available);
-			} catch(e) { console.error(prevPos !== currentPosition, available); return; }
+				soundData = new Float32Array(prevPos === currentPosition ? self.preBufferSize * self.channelCount : available);
+			} catch(e) {
+				self.emit('error', [Sink.Error(0x12)]);
+				self.kill();
+				return;
+			}
 			self.process(soundData, self.channelCount);
 			written = self._audio.mozWriteAudio(soundData);
 			if (written < soundData.length){
