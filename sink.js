@@ -767,6 +767,8 @@ inlineWorker.test = function () {
 		inlineWorker.working	= success;
 		inlineWorker.emit('ready', [success]);
 		inlineWorker.off('ready');
+		success && worker && worker.terminate();
+		worker = null;
 	}
 
 	if (!worker) {
