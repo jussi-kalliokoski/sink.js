@@ -536,7 +536,8 @@ sinks('moz', function(){
 		currentPosition === prevPos && self.emit('error', [Sink.Error(0x10)]);
 		if (available > 0 || prevPos === currentPosition){
 			try {
-				soundData = new Float32Array(prevPos === currentPosition ? self.preBufferSize * self.channelCount : available);
+				soundData = new Float32Array(prevPos === currentPosition ? self.preBufferSize * self.channelCount :
+					self.forceBufferSize ? available < self.bufferSize * 2 ? self.bufferSize * 2 : available : available);
 			} catch(e) {
 				self.emit('error', [Sink.Error(0x12)]);
 				self.kill();
@@ -574,6 +575,7 @@ sinks('moz', function(){
 	// These are somewhat safe values...
 	bufferSize: 24576,
 	preBufferSize: 24576,
+	forceBufferSize: false,
 	kill: function () {
 		while(this._timers.length){
 			this._timers[0]();
