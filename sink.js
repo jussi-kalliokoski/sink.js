@@ -567,7 +567,7 @@ sinks('moz', function(){
 		}
 	}, 1000));
 
-	this._timers.push(Sink.doInterval(bufferFill, 20));
+	this._timers.push(Sink.doInterval(bufferFill, self.interval));
 
 	self._bufferFill	= bufferFill;
 	self._audio		= audioDevice;
@@ -576,6 +576,7 @@ sinks('moz', function(){
 	bufferSize: 24576,
 	preBufferSize: 24576,
 	forceBufferSize: false,
+	interval: 20,
 	kill: function () {
 		while(this._timers.length){
 			this._timers[0]();
