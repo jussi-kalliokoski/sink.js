@@ -277,13 +277,13 @@ SinkClass.prototype = {
 		this.ringBuffer && (this.channelMode === 'interleaved' ? this.ringSpin : this.ringSpinInterleaved).apply(this, arguments);
 		this.writeBuffersSync.apply(this, arguments);
 		if (this.channelMode === 'interleaved') {
-			this.readFn && this.readFn.apply(this, arguments);
 			this.emit('audioprocess', arguments);
+			this.readFn && this.readFn.apply(this, arguments);
 		} else {
 			var	soundDataSplit	= Sink.deinterleave(soundData, this.channelCount),
 				args		= [soundDataSplit].concat([].slice.call(arguments, 1));
-			this.readFn && this.readFn.apply(this, args);
 			this.emit('audioprocess', args);
+			this.readFn && this.readFn.apply(this, args);
 			Sink.interleave(soundDataSplit, this.channelCount, soundData);
 		}
 		this.writeBuffersAsync.apply(this, arguments);
