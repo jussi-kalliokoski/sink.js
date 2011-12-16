@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="../sink.js"></script>
+		<script>
+(function(){
+
+var sampleRate, phase = 0, lfo = 0, lfo2 = 0;
+
+window.onload	= function(){
+	Sink.singleton().on('audioprocess', function(buffer, channelCount){
+		var i, n;
+		for (i=0; i<buffer.length; i+=channelCount){
+			phase = (phase + 440 / sampleRate / 2) % 1;
+			for (n=0; n<channelCount; n++){
+				buffer[i+n] += Math.sin(phase * Math.PI * 2) * 0.5;
+			}
+		}
+	});
+
+	Sink.singleton().on('audioprocess', function(buffer, channelCount){
+		var i, n;
+		for (i=0; i<buffer.length; i+=channelCount){
+			lfo2 = (lfo2 + 0.1 / sampleRate / 2) % 1;
+			lfo = (lfo + (Math.sin(lfo2 * Math.PI * 2) + 2) * 111 / sampleRate / 2) % 1;
+			for (n=0; n<channelCount; n++){
+				buffer[i+n] *= Math.sin(lfo * Math.PI * 2);
+			}
+		}
+	});
+
+	sampleRate = Sink.singleton().sampleRate;
+
+	Sink.singleton().on('error', function(e){
+		console.error(e);
+	});
+};
+
+}());
+
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
