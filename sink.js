@@ -1076,5 +1076,34 @@ Sink.createDeinterleaved = function(length, channelCount){
 	return result;
 };
 
+Sink.memcpy = function (src, srcOffset, dst, dstOffset, length) {
+	src	= src.subarray || src.slice ? src : src.buffer;
+	dst	= dst.subarray || dst.slice ? dst : dst.buffer;
+
+	src	= srcOffset ? src.subarray ?
+		src.subarray(srcOffset, length && srcOffset + length) :
+		src.slice(srcOffset, length && srcOffset + length) : src;
+
+	if (dst.set) {
+		dst.set(src, dstOffset);
+	} else {
+		for (var i=0; i<src.length; i++) {
+			dst[i + dstOffset] = src[i];
+		}
+	}
+
+	return dst;
+};
+
+Sink.memslice = function (buffer, offset, length) {
+	return buffer.subarray ? buffer.subarray(offset, length) : buffer.slice(offset, length);
+};
+
+Sink.mempad = function (buffer, out, offset) {
+	out = out.length ? out : new (buffer.constructor)(out);
+	Sink.memcpy(buffer, 0, out, offset);
+	return out;
+};
+
 global.Sink = Sink;
 }(function(){ return this; }()));
