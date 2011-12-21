@@ -1105,5 +1105,17 @@ Sink.mempad = function (buffer, out, offset) {
 	return out;
 };
 
+Sink.linspace = function (start, end, out) {
+	var l, i, n, step;
+	out	= out.length ? (l=out.length) && out : Array(l=out);
+	step	= (end - start) / --l;
+	for (n=start+step, i=1; i<l; i++, n+=step) {
+		out[i] = n;
+	}
+	out[0]	= start;
+	out[l]	= end;
+	return out;
+};
+
 global.Sink = Sink;
 }(function(){ return this; }()));
