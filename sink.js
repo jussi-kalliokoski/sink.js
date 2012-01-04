@@ -643,32 +643,7 @@ sinks('webkit', function (readFn, channelCount, bufferSize, sampleRate) {
 		}
 	}
 
-	if (sinks.webkit.forceSampleRate && self.sampleRate !== context.sampleRate) {
-		bufferFill = function bufferFill(e) {
-			var	outputBuffer	= e.outputBuffer,
-				channelCount	= outputBuffer.numberOfChannels,
-				i, n, l		= outputBuffer.length,
-				size		= outputBuffer.size,
-				channels	= new Array(channelCount),
-				soundData	= new Float32Array(Math.floor(l * self.sampleRate / context.sampleRate) * channelCount),
-				channel;
-
-			for (i=0; i<channelCount; i++) {
-				channels[i] = outputBuffer.getChannelData(i);
-			}
-
-			self.process(soundData, self.channelCount);
-			soundData = Sink.deinterleave(soundData, self.channelCount);
-			for (n=0; n<channelCount; n++) {
-				channel = Sink.resample(soundData[n], self.sampleRate, context.sampleRate);
-				for (i=0; i<l; i++) {
-					channels[n][i] = channel[i];
-				}
-			}
-		}
-	} else {
-		self.sampleRate = context.sampleRate;
-	}
+	self.sampleRate = context.sampleRate;
 
 	node.onaudioprocess = bufferFill;
 	node.connect(context.destination);
