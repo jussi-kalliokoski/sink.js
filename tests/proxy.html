@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script src="../sink.js"></script>
+		<script>
+(function(){
+
+var	bufferSize	= 4096,
+	iterations	= 0,
+	maxIterations	= 10,
+	test		= null,
+	dev, proxy;
+
+window.onload	= function(){
+	dev	= Sink();
+	proxy	= dev.createProxy()
+	proxy.on('audioprocess', function callback(buffer){
+		if (test !== null) {
+			dev.kill();
+			return;
+		}
+
+		if (buffer.length === bufferSize) {
+			if (iterations++ > 10) {
+				test = true;
+			}
+		} else {
+			test = false;
+		}
+
+		test !== null && console.error(test ? 'Test succesful' : 'Test failed');
+
+		for (var i=0; i<buffer.length; i++){
+			buffer[i] = (Math.random() - 0.5) * 0.5;
+		}
+	});
+
+	dev.on('error', function(e){
+		console.error(e);
+	});
+};
+
+}());
+
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
