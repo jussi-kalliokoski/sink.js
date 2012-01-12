@@ -2,7 +2,7 @@ IN := src/main.js src/event-emitter.js src/core/*.js src/sinks/*.js src/utils/*.
 OUT := sink.js
 DOCS := DOCS.md
 BUILD := ./build
-LIGHT_IN := src/main.js src/event-emitter.js src/core/*.js src/sinks/web-audio-api.js src/audio-data-api.js
+LIGHT_IN := src/main.js src/event-emitter.js src/core/*.js src/sinks/web-audio-api.js src/sinks/audio-data-api.js
 LIGHT_OUT := sink-light.js
 
 UPDATE := $(BUILD) update
