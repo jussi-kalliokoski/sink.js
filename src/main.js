@@ -102,6 +102,7 @@ SinkClass.prototype = Sink.prototype = {
  * The container for all the available sinks. Also a decorator function for creating a new Sink class and binding it.
  *
  * @method Sink
+ * @static
  *
  * @arg {String} type The name / type of the Sink.
  * @arg {Function} constructor The constructor function for the Sink.

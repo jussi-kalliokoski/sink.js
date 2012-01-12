@@ -404,8 +404,8 @@ var updatables = {
 			if (parent) {
 				parent.methods = parent.methods || [];
 				parent.methods.push(func);
-			} else {
-				methods.push(func);
+//			} else {
+//				methods.push(func);
 			}
 		});
 
