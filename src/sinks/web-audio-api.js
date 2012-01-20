@@ -4,9 +4,9 @@
  * A sink class for the Web Audio API
 */
 
-sinks('webkit', function (readFn, channelCount, bufferSize, sampleRate) {
+sinks('webaudio', function (readFn, channelCount, bufferSize, sampleRate) {
 	var	self		= this,
-		context		= sinks.webkit.getContext(),
+		context		= sinks.webaudio.getContext(),
 		node		= context.createJavaScriptNode(bufferSize, 0, channelCount),
 		soundData	= null,
 		zeroBuffer	= null;
@@ -62,13 +62,15 @@ sinks('webkit', function (readFn, channelCount, bufferSize, sampleRate) {
 	},
 });
 
-sinks.webkit.fix82795 = fixChrome82795;
+sinks.webkit = sinks.webaudio;
 
-sinks.webkit.getContext = function () {
+sinks.webaudio.fix82795 = fixChrome82795;
+
+sinks.webaudio.getContext = function () {
 	// For now, we have to accept that the AudioContext is at 48000Hz, or whatever it decides.
 	var context = new (window.AudioContext || webkitAudioContext)(/*sampleRate*/);
 
-	sinks.webkit.getContext = function () {
+	sinks.webaudio.getContext = function () {
 		return context;
 	};
 

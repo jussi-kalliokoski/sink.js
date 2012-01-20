@@ -4,7 +4,7 @@
  * A Sink class for the Mozilla Audio Data API.
 */
 
-Sink.sinks('moz', function () {
+Sink.sinks('audiodata', function () {
 	var	self			= this,
 		currentWritePosition	= 0,
 		tail			= null,
@@ -82,5 +82,7 @@ Sink.sinks('moz', function () {
 		return this._audio.mozCurrentSampleOffset() / this.channelCount;
 	},
 });
+
+Sink.sinks.moz = Sink.sinks.audiodata;
 
 }(this.Sink));
