@@ -28,7 +28,7 @@ function inlineWorker (script) {
 		bb			= null;
 
 		worker.terminate = function () {
-			this._terminate;
+			this._terminate();
 			URL.revokeObjectURL(this._url);
 		};
 
