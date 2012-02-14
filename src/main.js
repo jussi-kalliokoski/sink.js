@@ -50,6 +50,7 @@ SinkClass.prototype = Sink.prototype = {
 	ringOffset: 0,
 
 	channelMode: 'interleaved',
+	isReady: false,
 
 /**
  * Does the initialization of the sink.
@@ -95,6 +96,16 @@ SinkClass.prototype = Sink.prototype = {
 */
 	getPlaybackTime: function () {
 		return this.writePosition - this.bufferSize;
+	},
+/**
+ * Internal method to send the ready signal if not ready yet.
+ * @method Sink
+*/
+	ready: function () {
+		if (this.isReady) return;
+
+		this.isReady = true;
+		this.emit('ready', []);
 	},
 };
 

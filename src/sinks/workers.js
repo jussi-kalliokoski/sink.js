@@ -17,7 +17,8 @@ Sink.sinks('worker', function () {
 	importScripts();
 
 	function mspBufferFill (e) {
-		self.ready || self.initMSP(e);
+		self.isReady || self.initMSP(e);
+		self.ready();
 
 		var	channelCount	= self.channelCount,
 			l		= e.audioLength,
@@ -42,7 +43,8 @@ Sink.sinks('worker', function () {
 	}
 
 	function waBufferFill(e) {
-		self.ready || self.initWA(e);
+		self.isReady || self.initWA(e);
+		self.ready();
 
 		var	outputBuffer	= e.outputBuffer,
 			channelCount	= outputBuffer.numberOfChannels,

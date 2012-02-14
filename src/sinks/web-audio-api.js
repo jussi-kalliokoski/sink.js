@@ -1,4 +1,4 @@
-(function (sinks, fixChrome82795) {
+ (function (sinks, fixChrome82795) {
 
 /**
  * A sink class for the Web Audio API
@@ -19,6 +19,8 @@ sinks('webaudio', function (readFn, channelCount, bufferSize, sampleRate) {
 			size		= outputBuffer.size,
 			channels	= new Array(channelCount),
 			tail;
+
+		self.ready();
 		
 		soundData	= soundData && soundData.length === l * channelCount ? soundData : new Float32Array(l * channelCount);
 		zeroBuffer	= zeroBuffer && zeroBuffer.length === soundData.length ? zeroBuffer : new Float32Array(l * channelCount);
@@ -57,6 +59,7 @@ sinks('webaudio', function (readFn, channelCount, bufferSize, sampleRate) {
 		this._node = this._context = null;
 		this.emit('kill');
 	},
+
 	getPlaybackTime: function () {
 		return this._context.currentTime * this.sampleRate;
 	},

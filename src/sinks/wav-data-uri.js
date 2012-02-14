@@ -29,6 +29,9 @@ sinks('wav', function () {
 	
 	function bufferFill () {
 		if (self._audio.hasNextFrame) return;
+
+		self.ready();
+
 		Sink.memcpy(zeroData, 0, soundData, 0);
 		self.process(soundData, self.channelCount);
 
