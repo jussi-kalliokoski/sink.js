@@ -63,7 +63,7 @@ sinks('webaudio', function (readFn, channelCount, bufferSize, sampleRate) {
 	getPlaybackTime: function () {
 		return this._context.currentTime * this.sampleRate;
 	},
-});
+}, false, true);
 
 sinks.webkit = sinks.webaudio;
 

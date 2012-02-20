@@ -85,7 +85,7 @@ Sink.sinks('audiodata', function () {
 	getPlaybackTime: function () {
 		return this._audio.mozCurrentSampleOffset() / this.channelCount;
 	},
-});
+}, false, true);
 
 Sink.sinks.moz = Sink.sinks.audiodata;
 
