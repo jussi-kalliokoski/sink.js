@@ -16,7 +16,7 @@ var sink = Sink([callback=null], [channelCount=2], [preBufferSize=4096], [sample
 
 Currently, it is recommended to check that you are actually running at the sample rate that you specified, so when you create a sink, get the samplerate reference always from its ``` .sampleRate ``` property.
 
-The callback is fed with two arguments, the buffer to fill and the channel count of the buffer. The buffer provided is always interleaved, so for example, to play back stereo noise, you can do the following:
+The callback is fed with two arguments, the buffer to fill and the channel count of the buffer. For example, to play back stereo noise, you can do the following:
 
 ```javascript
 
@@ -28,6 +28,33 @@ var sink = Sink(function(buffer, channelCount){
 });
 
 ```
+
+Note that `buffer` is interleaved and therefore the samples should be written as :
+
+```javascript 
+[
+    channel1, channel2, ... channelN,	// frame 1
+    channel1, channel2, ... channelN,	// frame 2
+    ...	                                // ...
+]
+``` 
+
+For example, to play back a 440Hz sine wave in stereo, you can do :
+
+```javascript
+var k, v, n = 0;
+var sink = Sink(function(buffer){
+	for (var j=0; j<buffer.length; j+=2, n++) {
+        	v = Math.sin(k*n);
+        	buffer[j] = v;
+        	buffer[j+1] = v;
+    	}
+}, 2); // 2 channels ... which is already the default
+
+k = 2*Math.PI*440/sink.sampleRate;
+```
+
+Note also that the length of the `buffer` can vary, only sure thing is that it is less than `preBufferSize`.
 
 To write, you can use the ``` .write(buffer, [delay=undefined]) ``` method. The default writing mode is "async" where the specified buffer will be mixed with existing data. If a delay is not specified, the system will automatically create a delay to try to compensate the latency. The delay is specified as number of samples.
 
