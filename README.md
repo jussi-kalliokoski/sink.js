@@ -3,8 +3,8 @@ sink.js
 
 sink.js is a javascript library dedicated for audio output. Features include buffer fill callbacks, synchronous write, asynchronous write, ring buffers and recording. Currently supported platforms are Firefox 4+ and Chrome with Web Audio API enabled in ``` about:flags ```. Additional platforms, such as a flash fallback can be added as plugins, but are currently not featured, nor will ever be enabled by default. For a platform to be added as enabled by default, it needs to be reliable in terms of latency and stability. Flash fallbacks – for example – cannot offer this kind of reliability and the sound will always be flaky at best.
 
-Usage
------
+Basic usage
+-------------
 
 To create a sink, the following function is available:
 
@@ -43,7 +43,7 @@ For example, to play back a 440Hz sine wave in stereo, you can do :
 
 ```javascript
 var k, v, n = 0;
-var sink = Sink(function(buffer){
+var sink = Sink(function(buffer, channelCount){
 	for (var j=0; j<buffer.length; j+=2, n++) {
         	v = Math.sin(k*n);
         	buffer[j] = v;
@@ -54,17 +54,50 @@ var sink = Sink(function(buffer){
 k = 2*Math.PI*440/sink.sampleRate;
 ```
 
-Note also that the length of the `buffer` can vary, only sure thing is that it is less than `preBufferSize`.
+Note also that the length of the `buffer` can vary, it will however always be less than `preBufferSize`. If you need control over `buffer`'s length, check-out [proxies][proxy]. 
 
-To write, you can use the ``` .write(buffer, [delay=undefined]) ``` method. The default writing mode is "async" where the specified buffer will be mixed with existing data. If a delay is not specified, the system will automatically create a delay to try to compensate the latency. The delay is specified as number of samples.
+To bring the sink to a force stop, you can use the ``` .kill() ``` method. But so far, this doesn't work in Chrome, and the Chrome's AudioContext can't be taken down. This will be fixed as soon as possible. Also, beware of creating multiple sinks to avoid unexpected results.
+
+Buffer writing API
+-------------------
+
+As an alternative to the callback API, you can directly write sound to the buffers with ``` .write(buffer, [delay=undefined]) ``` method. The default writing mode is "async" where the specified buffer will be mixed with existing data. If a delay is not specified, the system will automatically create a delay to try to compensate the latency. The delay is specified as number of samples.
 
 Another mode of writing is "sync". You can set this by changing your sink's ``` .writeMode ``` property to "sync". In the "sync" write mode, the delay is disregarded and instead all written buffers will be appended right after the previous one has been exhausted. To get the current sample offset in the "sync" write mode, you can use the ``` .getSyncWriteOffset() ``` method.
 
 Beware of writing zero-length buffers, as they will induce NaNs to your buffers. This can be a bad thing especially if written in the "sync" mode and combined with some effects processing in a callback.
 
-To bring the sink to a force stop, you can use the ``` .kill() ``` method. But so far, this doesn't work in Chrome, and the Chrome's AudioContext can't be taken down. This will be fixed as soon as possible. Also, beware of creating multiple sinks to avoid unexpected results.
+Proxy
+------
 
-### Recording
+[proxy]:
+
+`Proxy` is a thin-wrapper around the basic sink, allowing you to control the size of the buffer received by the callback.
+
+To create a proxy, use the following function:
+
+```
+
+var proxy = Sink.createProxy([bufferSize=4096])
+
+```
+
+For example, to play back a 440Hz sine wave in stereo, you can do :
+
+```javascript
+var bufferSize = 4096, sink = Sink();
+var proxy = sink.createProxy(bufferSize);
+proxy.on('audioprocess', function(buffer, channelCount){
+	for (var j=0; j<bufferSize; j+=2, n++) {
+        	v = Math.sin(k*n);
+        	buffer[j] = v;
+        	buffer[j+1] = v;
+    	}
+});
+```
+
+Recording
+-----------
 
 Recording can be done by creating an instance of the recording, like this:
 
@@ -82,7 +115,8 @@ var buffer = recording.join();
 
 ```
 
-### Ring buffer
+Ring buffer
+-------------
 
 Here's an example how to use the ring buffer:
 
