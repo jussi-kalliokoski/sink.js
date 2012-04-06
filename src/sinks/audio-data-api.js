@@ -72,7 +72,7 @@ Sink.sinks('audiodata', function () {
 	bufferSize: 24576,
 	preBufferSize: 24576,
 	forceBufferSize: false,
-	interval: 20,
+	interval: 100,
 
 	kill: function () {
 		while (this._timers.length) {
