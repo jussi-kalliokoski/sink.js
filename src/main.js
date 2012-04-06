@@ -62,7 +62,7 @@ SinkClass.prototype = Sink.prototype = {
 		this.sampleRate		= isNaN(sampleRate) || sampleRate === null ? this.sampleRate : sampleRate;
 		this.readFn		= readFn;
 		this.activeRecordings	= [];
-		this.previousHit	= +new Date;
+		this.previousHit	= +new Date();
 		Sink.EventEmitter.call(this);
 		Sink.emit('init', [this].concat([].slice.call(arguments)));
 	},
@@ -72,19 +72,30 @@ SinkClass.prototype = Sink.prototype = {
 */
 	process: function (soundData, channelCount) {
 		this.emit('preprocess', arguments);
-		this.ringBuffer && (this.channelMode === 'interleaved' ? this.ringSpin : this.ringSpinInterleaved).apply(this, arguments);
+
+		if (this.ringBuffer) {
+			(this.channelMode === 'interleaved' ? this.ringSpin : this.ringSpinInterleaved).apply(this, arguments);
+		}
+
 		if (this.channelMode === 'interleaved') {
 			this.emit('audioprocess', arguments);
-			this.readFn && this.readFn.apply(this, arguments);
+
+			if (this.readFn) {
+				this.readFn.apply(this, arguments);
+			}
 		} else {
 			var	soundDataSplit	= Sink.deinterleave(soundData, this.channelCount),
 				args		= [soundDataSplit].concat([].slice.call(arguments, 1));
 			this.emit('audioprocess', args);
-			this.readFn && this.readFn.apply(this, args);
+
+			if (this.readFn) {
+				this.readFn.apply(this, args);
+			}
+
 			Sink.interleave(soundDataSplit, this.channelCount, soundData);
 		}
 		this.emit('postprocess', arguments);
-		this.previousHit = +new Date;
+		this.previousHit = +new Date();
 		this.writePosition += soundData.length / channelCount;
 	},
 /**
@@ -126,11 +137,14 @@ function sinks (type, constructor, prototype, disabled, priority) {
 	constructor.prototype = new Sink.SinkClass();
 	constructor.prototype.type = type;
 	constructor.enabled = !disabled;
-	for (disabled in prototype) {
-		if (prototype.hasOwnProperty(disabled)) {
-			constructor.prototype[disabled] = prototype[disabled];
+
+	var k;
+	for (k in prototype) {
+		if (prototype.hasOwnProperty(k)) {
+			constructor.prototype[k] = prototype[k];
 		}
 	}
+
 	sinks[type] = constructor;
 	sinks.list[priority ? 'unshift' : 'push'](constructor);
 }

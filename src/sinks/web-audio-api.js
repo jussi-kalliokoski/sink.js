@@ -1,5 +1,7 @@
  (function (sinks, fixChrome82795) {
 
+var AudioContext = typeof window === 'undefined' ? null : window.webkitAudioContext || window.AudioContext;
+
 /**
  * A sink class for the Web Audio API
 */
@@ -53,16 +55,20 @@ sinks('webaudio', function (readFn, channelCount, bufferSize, sampleRate) {
 }, {
 	kill: function () {
 		this._node.disconnect(0);
+
 		for (var i=0; i<fixChrome82795.length; i++) {
-			fixChrome82795[i] === this._node && fixChrome82795.splice(i--, 1);
+			if (fixChrome82795[i] === this._node) {
+				fixChrome82795.splice(i--, 1);
+			}
 		}
+
 		this._node = this._context = null;
 		this.emit('kill');
 	},
 
 	getPlaybackTime: function () {
 		return this._context.currentTime * this.sampleRate;
-	},
+	}
 }, false, true);
 
 sinks.webkit = sinks.webaudio;
@@ -71,7 +77,7 @@ sinks.webaudio.fix82795 = fixChrome82795;
 
 sinks.webaudio.getContext = function () {
 	// For now, we have to accept that the AudioContext is at 48000Hz, or whatever it decides.
-	var context = new (window.AudioContext || webkitAudioContext)(/*sampleRate*/);
+	var context = new AudioContext(/*sampleRate*/);
 
 	sinks.webaudio.getContext = function () {
 		return context;

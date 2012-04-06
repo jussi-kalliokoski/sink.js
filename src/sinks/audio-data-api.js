@@ -27,7 +27,11 @@ Sink.sinks('audiodata', function () {
 
 		currentPosition = audioDevice.mozCurrentSampleOffset();
 		available = Number(currentPosition + (prevPos !== currentPosition ? self.bufferSize : self.preBufferSize) * self.channelCount - currentWritePosition);
-		currentPosition === prevPos && self.emit('error', [Sink.Error(0x10)]);
+
+		if (currentPosition === prevPos) {
+			self.emit('error', [Sink.Error(0x10)]);
+		}
+
 		if (available > 0 || prevPos === currentPosition){
 			self.ready();
 
@@ -55,7 +59,7 @@ Sink.sinks('audiodata', function () {
 
 	this._timers.push(Sink.doInterval(function () {
 		// Check for complete death of the output
-		if (+new Date - self.previousHit > 2000) {
+		if (+new Date() - self.previousHit > 2000) {
 			self._audio = audioDevice = new Audio();
 			audioDevice.mozSetup(self.channelCount, self.sampleRate);
 			currentWritePosition = 0;

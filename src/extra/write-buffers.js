@@ -37,7 +37,9 @@ proto.writeBuffersAsync = function (buffer) {
 				buffer[n + offset] += buf.b[n];
 			}
 			buf.b = buf.b.subarray(n + offset);
-			i >= bufLength && buffers.splice(i--, 1);
+			if (i >= bufLength) {
+				buffers.splice(i--, 1);
+			}
 		}
 	}
 };
@@ -84,7 +86,7 @@ proto.writeBufferAsync = function (buffer, delay) {
 	var	buffers		= this.asyncBuffers;
 	buffers.push({
 		b: buffer,
-		d: isNaN(delay) ? ~~((+new Date - this.previousHit) / 1000 * this.sampleRate) : delay
+		d: isNaN(delay) ? ~~((+new Date() - this.previousHit) / 1000 * this.sampleRate) : delay
 	});
 	return buffers.length;
 };

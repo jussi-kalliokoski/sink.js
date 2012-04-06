@@ -28,10 +28,15 @@ Proxy.prototype = {
 	},
 
 	process: function (buffer, channelCount) {
-		this.offset === null && this.loadBuffer();
+		if (this.offset === null) {
+			this.loadBuffer();
+		}
 
 		for (var i=0; i<buffer.length; i++) {
-			this.offset >= this.buffer.length && this.loadBuffer();
+			if (this.offset >= this.buffer.length) {
+				this.loadBuffer();
+			}
+
 			buffer[i] = this.buffer[this.offset++];
 		}
 	},
@@ -40,7 +45,7 @@ Proxy.prototype = {
 		this.offset = 0;
 		Sink.memcpy(this.zeroBuffer, 0, this.buffer, 0);
 		this.emit('audioprocess', [this.buffer, this.channelCount]);
-	},
+	}
 };
 
 Sink.Proxy = Proxy;

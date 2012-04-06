@@ -17,7 +17,10 @@ Sink.sinks('worker', function () {
 	importScripts();
 
 	function mspBufferFill (e) {
-		self.isReady || self.initMSP(e);
+		if (!self.isReady) {
+			self.initMSP(e);
+		}
+
 		self.ready();
 
 		var	channelCount	= self.channelCount,
@@ -43,7 +46,10 @@ Sink.sinks('worker', function () {
 	}
 
 	function waBufferFill(e) {
-		self.isReady || self.initWA(e);
+		if (!self.isReady) {
+			self.initWA(e);
+		}
+
 		self.ready();
 
 		var	outputBuffer	= e.outputBuffer,
@@ -94,7 +100,7 @@ Sink.sinks('worker', function () {
 		this.bufferSize		= b.length * this.channelCount;
 		this.ready		= true;
 		this.emit('ready', []);
-	},
+	}
 });
 
 }(this.Sink));

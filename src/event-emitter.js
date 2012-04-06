@@ -14,7 +14,7 @@ function EventEmitter () {
 		}
 	}
 	this._listeners = {};
-};
+}
 
 EventEmitter.prototype = {
 	_listeners: null,
@@ -61,12 +61,16 @@ EventEmitter.prototype = {
 				delete this._listeners[name];
 				return this;
 			}
+
 			for (var i=0; i<this._listeners[name].length; i++) {
 				if (this._listeners[name][i] === listener) {
 					this._listeners[name].splice(i--, 1);
 				}
 			}
-			this._listeners[name].length || delete this._listeners[name];
+
+			if (!this._listeners[name].length) {
+				delete this._listeners[name];
+			}
 		}
 		return this;
 	}

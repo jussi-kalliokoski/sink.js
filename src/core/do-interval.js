@@ -33,15 +33,21 @@ Sink.doInterval = function (callback, timeout) {
 		}
 	}
 
-	Sink.inlineWorker.ready ? create() : Sink.inlineWorker.on('ready', function () {
+	if (Sink.inlineWorker.ready) {
 		create();
-	});
+	} else {
+		Sink.inlineWorker.on('ready', function () {
+			create();
+		});
+	}
 
 	return function () {
 		if (!kill) {
-			Sink.inlineWorker.ready || Sink.inlineWorker.on('ready', function () {
-				kill && kill();
-			});
+			if (!Sink.inlineWorker.ready) {
+				Sink.inlineWorker.on('ready', function () {
+					if (kill) kill();
+				});
+			}
 		} else {
 			kill();
 		}

@@ -1,7 +1,9 @@
 (function (Sink) {
 
 function processRingBuffer () {
-	this.ringBuffer && (this.channelMode === 'interleaved' ? this.ringSpin : this.ringSpinInterleaved).apply(this, arguments);
+	if (this.ringBuffer) {
+		(this.channelMode === 'interleaved' ? this.ringSpin : this.ringSpinInterleaved).apply(this, arguments);
+	}
 }
 
 Sink.on('init', function (sink) {

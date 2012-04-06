@@ -1,6 +1,6 @@
 (function (Sink, sinks) {
 
-var sinks = Sink.sinks;
+sinks = Sink.sinks;
 
 function newAudio (src) {
 	var audio = document.createElement('audio');
@@ -10,7 +10,7 @@ function newAudio (src) {
 	return audio;
 }
 
-/* TODO: Implement a <BGSOUND> hack for IE8.
+/* TODO: Implement a <BGSOUND> hack for IE8. */
 
 /**
  * A sink class for WAV data URLs
@@ -19,7 +19,7 @@ function newAudio (src) {
 */
 sinks('wav', function () {
 	var	self			= this,
-		audio			= new sinks.wav.wavAudio,
+		audio			= new sinks.wav.wavAudio(),
 		PCMData			= typeof PCMData === 'undefined' ? audioLib.PCMData : PCMData;
 	self.start.apply(self, arguments);
 	var	soundData		= new Float32Array(self.bufferSize * self.channelCount),
@@ -40,7 +40,7 @@ sinks('wav', function () {
 				data:		soundData,
 				sampleRate:	self.sampleRate,
 				channelCount:	self.channelCount,
-				bytesPerSample:	self.quality,
+				bytesPerSample:	self.quality
 			})
 		));
 
@@ -57,7 +57,7 @@ sinks('wav', function () {
 	getPlaybackTime: function () {
 		var audio = this._audio;
 		return (audio.currentFrame ? audio.currentFrame.currentTime * this.sampleRate : 0) + audio.samples;
-	},
+	}
 });
 
 function wavAudio () {
@@ -92,7 +92,7 @@ wavAudio.prototype = {
 		this.nextFrame.addEventListener('ended', this._onended, true);
 
 		this.hasNextFrame = true;
-	},
+	}
 };
 
 sinks.wav.wavAudio = wavAudio;

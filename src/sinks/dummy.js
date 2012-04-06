@@ -5,7 +5,7 @@
 */
 
 Sink.sinks('dummy', function () {
-	var 	self		= this;
+	var	self = this;
 	self.start.apply(self, arguments);
 	
 	function bufferFill () {
