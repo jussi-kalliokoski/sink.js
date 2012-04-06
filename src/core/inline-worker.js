@@ -1,8 +1,8 @@
 (function (Sink) {
 
 var	BlobBuilder	= typeof window === 'undefined' ? undefined :
-	window.MozBlobBuilder || window.WebKitBlobBuilder || window.MSBlobBuilder || window.OBlobBuilder || window.BlobBuilder,
-	URL		= typeof window === 'undefined' ? undefined : (window.MozURL || window.webkitURL || window.MSURL || window.OURL || window.URL);
+	window.BlobBuilder || window.MozBlobBuilder || window.WebKitBlobBuilder || window.MSBlobBuilder || window.OBlobBuilder,
+	URL		= typeof window === 'undefined' ? undefined : (window.URL || window.MozURL || window.webkitURL || window.MSURL || window.OURL);
 
 /**
  * Creates an inline worker using a data/blob URL, if possible.
