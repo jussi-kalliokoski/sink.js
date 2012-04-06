@@ -106,7 +106,7 @@ Recording.prototype = {
 			bufPos += buffers[i].length;
 		}
 		return newArray;
-	},
+	}
 };
 
 Sink.Recording = Recording;

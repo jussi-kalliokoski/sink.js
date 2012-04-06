@@ -20,7 +20,7 @@ Sink.sinks('dummy', function () {
 	kill: function () {
 		this._kill();
 		this.emit('kill');
-	},
+	}
 }, true);
 
 }(this.Sink));

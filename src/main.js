@@ -106,7 +106,7 @@ SinkClass.prototype = Sink.prototype = {
 
 		this.isReady = true;
 		this.emit('ready', []);
-	},
+	}
 };
 
 /**

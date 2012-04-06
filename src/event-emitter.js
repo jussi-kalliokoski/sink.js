@@ -69,7 +69,7 @@ EventEmitter.prototype = {
 			this._listeners[name].length || delete this._listeners[name];
 		}
 		return this;
-	},
+	}
 };
 
 Sink.EventEmitter = EventEmitter;
