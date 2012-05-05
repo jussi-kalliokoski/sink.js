@@ -1,4 +1,4 @@
-(function (Sink) {
+void function (Sink) {
 
 /**
  * A dummy Sink. (No output)
@@ -23,4 +23,4 @@ Sink.sinks('dummy', function () {
 	}
 }, true);
 
-}(this.Sink));
+}(this.Sink);

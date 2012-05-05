@@ -1,4 +1,4 @@
-(function (Sink) {
+void function (Sink) {
 
 /*
  * A Sink-specific error class.
@@ -58,4 +58,4 @@ SinkError[0x12] = {
 
 Sink.Error = SinkError;
 
-}(this.Sink));
+}(this.Sink);

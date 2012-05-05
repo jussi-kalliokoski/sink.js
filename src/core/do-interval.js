@@ -1,4 +1,4 @@
-(function (Sink) {
+void function (Sink) {
 
 /**
  * Creates a timer with consistent (ie. not clamped) intervals even in background tabs.
@@ -54,4 +54,4 @@ Sink.doInterval = function (callback, timeout) {
 	};
 };
 
-}(this.Sink));
+}(this.Sink);

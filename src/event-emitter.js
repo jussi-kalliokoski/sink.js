@@ -1,4 +1,4 @@
-(function (Sink) {
+void function (Sink) {
 
 /**
  * A light event emitter.
@@ -80,4 +80,4 @@ Sink.EventEmitter = EventEmitter;
 
 EventEmitter.call(Sink);
 
-}(this.Sink));
+}(this.Sink);

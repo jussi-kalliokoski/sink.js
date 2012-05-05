@@ -1,4 +1,4 @@
-(function (Sink) {
+void function (Sink) {
 
 var	BlobBuilder	= typeof window === 'undefined' ? undefined :
 	window.BlobBuilder || window.MozBlobBuilder || window.WebKitBlobBuilder || window.MSBlobBuilder || window.OBlobBuilder,
@@ -89,4 +89,4 @@ Sink.inlineWorker = inlineWorker;
 
 inlineWorker.test();
 
-}(this.Sink));
+}(this.Sink);

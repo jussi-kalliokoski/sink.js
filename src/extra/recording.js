@@ -1,4 +1,4 @@
-(function (Sink) {
+void function (Sink) {
 
 Sink.on('init', function (sink) {
 	sink.activeRecordings = [];
@@ -111,4 +111,4 @@ Recording.prototype = {
 
 Sink.Recording = Recording;
 
-}(this.Sink));
+}(this.Sink);

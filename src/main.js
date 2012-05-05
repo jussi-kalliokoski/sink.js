@@ -1,4 +1,4 @@
-var Sink = this.Sink = (function(global){
+var Sink = this.Sink = function (global) {
 
 /**
  * Creates a Sink according to specified parameters, if possible.
@@ -166,4 +166,4 @@ global.Sink = Sink;
 
 return Sink;
 
-}(function (){ return this; }()));
+}(function (){ return this; }());

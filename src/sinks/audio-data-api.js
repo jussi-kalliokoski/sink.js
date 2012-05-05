@@ -1,4 +1,4 @@
-(function (Sink) {
+void function (Sink) {
 
 /**
  * A Sink class for the Mozilla Audio Data API.
@@ -93,4 +93,4 @@ Sink.sinks('audiodata', function () {
 
 Sink.sinks.moz = Sink.sinks.audiodata;
 
-}(this.Sink));
+}(this.Sink);

@@ -1,4 +1,4 @@
-(function (Sink) {
+void function (Sink) {
 
 function processRingBuffer () {
 	if (this.ringBuffer) {
@@ -58,4 +58,4 @@ Sink.prototype.ringSpinDeinterleaved = function (buffer) {
 	this.ringOffset = n;
 };
 
-}(this.Sink));
+}(this.Sink);

@@ -1,4 +1,4 @@
-(function (Sink, proto) {
+void function (Sink, proto) {
 
 proto = Sink.prototype;
 
@@ -139,4 +139,4 @@ proto.getSyncWriteOffset = function () {
 	return offset;
 };
 
-} (this.Sink));
+} (this.Sink);
