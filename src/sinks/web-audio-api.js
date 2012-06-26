@@ -9,10 +9,11 @@ var AudioContext = typeof window === 'undefined' ? null : window.webkitAudioCont
 sinks('webaudio', function (readFn, channelCount, bufferSize, sampleRate) {
 	var	self		= this,
 		context		= sinks.webaudio.getContext(),
-		node		= context.createJavaScriptNode(bufferSize, 0, channelCount),
+		node		= null,
 		soundData	= null,
 		zeroBuffer	= null;
 	self.start.apply(self, arguments);
+	node = context.createJavaScriptNode(self.bufferSize, 0, self.channelCount);
 
 	function bufferFill(e) {
 		var	outputBuffer	= e.outputBuffer,
