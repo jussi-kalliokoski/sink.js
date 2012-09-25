@@ -1,4 +1,4 @@
- (function (sinks, fixChrome82795) {
+(function (sinks, fixChrome82795) {
 
 var AudioContext = typeof window === 'undefined' ? null : window.webkitAudioContext || window.AudioContext;
 
@@ -11,9 +11,15 @@ sinks('webaudio', function (readFn, channelCount, bufferSize, sampleRate) {
 		context		= sinks.webaudio.getContext(),
 		node		= null,
 		soundData	= null,
+		src 		= null,
 		zeroBuffer	= null;
 	self.start.apply(self, arguments);
+
+	src = context.createBufferSource();
+	src.noteOn(0);
+
 	node = context.createJavaScriptNode(self.bufferSize, self.channelCount, self.channelCount);
+	src.connect(node); // not strictly needed
 
 	function bufferFill(e) {
 		var	outputBuffer	= e.outputBuffer,
@@ -50,6 +56,7 @@ sinks('webaudio', function (readFn, channelCount, bufferSize, sampleRate) {
 	self._context		= context;
 	self._node		= node;
 	self._callback		= bufferFill;
+	self._src = src;
 	/* Keep references in order to avoid garbage collection removing the listeners, working around http://code.google.com/p/chromium/issues/detail?id=82795 */
 	// Thanks to @baffo32
 	fixChrome82795.push(node);
@@ -63,7 +70,7 @@ sinks('webaudio', function (readFn, channelCount, bufferSize, sampleRate) {
 			}
 		}
 
-		this._node = this._context = null;
+		this._src = this._node = this._context = null;
 		this.emit('kill');
 	},
 
