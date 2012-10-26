@@ -3,3 +3,4 @@ sink-light.js
 DOCS.md
 *.tar.gz
 *.zip
+node_modules

@@ -1,0 +1,27 @@
+{
+  "name": "sink.js",
+  "version": "0.0.0",
+  "description": "A callback based raw audio API.",
+  "main": "sink.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "preinstall": "make sink.js",
+    "test": "node tests/node-test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jussi-kalliokoski/sink.js"
+  },
+  "keywords": [
+    "audio",
+    "sink",
+    "raw"
+  ],
+  "dependencies": {
+    "cubeb": "0.1.x"
+  },
+  "author": "Jussi Kalliokoski",
+  "license": "MIT"
+}
