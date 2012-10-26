@@ -52,6 +52,9 @@ function inlineWorker (script) {
 	}
 
 	var createDynURL = Sink.createDynURL;
+
+	if (!createDynURL) return null;
+
 	var worker;
 
 	if (inlineWorker.createURL) {
