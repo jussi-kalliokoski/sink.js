@@ -61,8 +61,11 @@ Sink.sinks('cubeb', function () {
 	kill: function () {
 		this._stream.stop();
 		this.emit('kill');
+	},
+
+	getPlaybackTime: function () {
+		return this._stream.position;
 	}
-	
 });
 
 }(this.Sink);
