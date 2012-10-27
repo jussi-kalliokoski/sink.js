@@ -1,15 +1,15 @@
 void function (Sink) {
 
-var cubeb
+var cubeb;
 
 try {
-	cubeb = require('cubeb')
+	cubeb = require('cubeb');
 } catch (e) {
-	return
+	return;
 }
 
 var getContext = function () {
-	var ctx
+	var ctx;
 
 	return function () {
 		ctx = new cubeb.Context(
@@ -19,7 +19,7 @@ var getContext = function () {
 		getContext = function () { return ctx; };
 
 		return ctx;
-	}
+	};
 }();
 
 var streamCount = 0;
