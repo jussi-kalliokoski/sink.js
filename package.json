@@ -1,6 +1,6 @@
 {
   "name": "sink.js",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A callback based raw audio API.",
   "main": "sink.js",
   "directories": {
